@@ -135,3 +135,22 @@ JOIN       public.block b  ON u.block_id = b.block_id
 JOIN       public.room  r  ON u.room_id  = r.room_id
 JOIN       public.role  ro ON u.role_id  = ro.role_id
 WHERE      ro.role_name = 'Student';
+
+CREATE OR REPLACE VIEW public.view_pending_complaints AS
+SELECT
+    c.complaint_id,
+    c.title,
+    c.description,
+    c.priority,
+    c.status,
+    c.date_submitted,
+    u.email AS submitted_by_email,
+    b.block_name,
+    r.room_number,
+    f.facility_name
+FROM public.complaint c
+JOIN public.users u ON c.submitted_by = u.user_id
+JOIN public.block b ON c.block_id = b.block_id
+LEFT JOIN public.room r ON c.room_id = r.room_id
+LEFT JOIN public.facility f ON c.facility_id = f.facility_id
+WHERE c.status = 'Pending';
