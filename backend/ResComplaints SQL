@@ -237,15 +237,15 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO public.users (first_name, surname, email, password_hash, user_number, block_id, room_id, role_id)
 VALUES
-('Alice','Johnson','20240101@mynwu.ac.za','pw1','20240101',
+('Alice','Johnson','20240101@mynwu.ac.za','$2b$10$hhvrjqxKX5tPX.WymY5KluUxtYgnfGcRskfX6P/Qo0F/zZLXQDu9.','20240101',
     (SELECT block_id FROM public.block WHERE block_num=1),
     (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND room_number=1),
     (SELECT role_id FROM public.role WHERE role_name='Student')),
-('Bob','Smith','20240102@mynwu.ac.za','pw2','20240102',
+('Bob','Smith','20240102@mynwu.ac.za','$2b$10$Vxgcx.ZLX8L20WSTS11wgeA9DC/WjPwOs.MjF5upcXPJHlZ4eo1SW','20240102',
     (SELECT block_id FROM public.block WHERE block_num=1),
     (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND room_number=2),
     (SELECT role_id FROM public.role WHERE role_name='Student')),
-('Charlie','Brown','20240103@mynwu.ac.za','pw3','20240103',
+('Charlie','Brown','20240103@mynwu.ac.za','$2b$10$6fSMbwBJtf3/JH.TMYY6B.wV/fyR4MgMANP6E53GDjBNzcc3iNniK','20240103',
     (SELECT block_id FROM public.block WHERE block_num=2),
     (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=2) AND room_number=3),
     (SELECT role_id FROM public.role WHERE role_name='Student'))
