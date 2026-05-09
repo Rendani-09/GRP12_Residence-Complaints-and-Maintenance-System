@@ -192,3 +192,17 @@ VALUES
 (19,'Block 19','Residential'),(20,'Block 20','Residential'),(21,'Block 21','Residential'),
 (22,'Block 22','Residential'),(23,'Block 23','Facility')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO public.room (block_id, room_number)
+SELECT b.block_id, gs.room_number
+FROM public.block b
+CROSS JOIN generate_series(1,10) AS gs(room_number)
+WHERE b.block_num BETWEEN 1 AND 22
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.facility (block_id, facility_name, facility_type)
+SELECT b.block_id, (f.facility_type || ' Block ' || b.block_num) AS facility_name, f.facility_type
+FROM public.block b
+CROSS JOIN (VALUES ('Kitchen'),('Toilet'),('Shower')) AS f(facility_type)
+WHERE b.block_num BETWEEN 1 AND 22
+ON CONFLICT DO NOTHING;
