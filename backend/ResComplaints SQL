@@ -265,3 +265,24 @@ VALUES
  NULL,
  (SELECT facility_id FROM public.facility WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND facility_type='Shower'),
  'Blocked shower drain','Shower drain is blocked and water collects.', 'Medium','Pending'),
+INSERT INTO public.complaint (submitted_by, category_id, block_id, room_id, facility_id, title, description, priority, status)
+VALUES
+((SELECT user_id FROM public.users WHERE email='20240101@mynwu.ac.za'),
+ (SELECT category_id FROM public.complaint_category WHERE category_name='Electrical'),
+ (SELECT block_id FROM public.block WHERE block_num=1),
+ (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND room_number=1),
+ NULL,'Faulty ceiling light','The ceiling light in room 1 is flickering.', 'High','Pending'),
+
+((SELECT user_id FROM public.users WHERE email='20240102@mynwu.ac.za'),
+ (SELECT category_id FROM public.complaint_category WHERE category_name='Hygiene'),
+ (SELECT block_id FROM public.block WHERE block_num=1),
+ NULL,
+ (SELECT facility_id FROM public.facility WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND facility_type='Shower'),
+ 'Blocked shower drain','Shower drain is blocked and water collects.', 'Medium','Pending'),
+
+((SELECT user_id FROM public.users WHERE email='20240103@mynwu.ac.za'),
+ (SELECT category_id FROM public.complaint_category WHERE category_name='Structural'),
+ (SELECT block_id FROM public.block WHERE block_num=2),
+ (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=2) AND room_number=3),
+ NULL,'Cracked wall','A crack has appeared near the window.','Medium','Pending')
+ON CONFLICT DO NOTHING;
