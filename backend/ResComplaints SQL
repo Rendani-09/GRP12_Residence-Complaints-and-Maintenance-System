@@ -32,3 +32,19 @@ CREATE TABLE IF NOT EXISTS public.room (
     CONSTRAINT room_block_room_unique  UNIQUE (block_id, room_number),
     CONSTRAINT room_id_block_unique    UNIQUE (room_id, block_id)
 );
+CREATE TABLE IF NOT EXISTS public.facility (
+    facility_id   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    block_id      INTEGER     NOT NULL REFERENCES public.block (block_id),
+    facility_name VARCHAR(50) NOT NULL,
+    facility_type VARCHAR(20) NOT NULL,
+    CONSTRAINT facility_type_chk        CHECK (facility_type IN ('Kitchen', 'Toilet', 'Shower', 'Laundry')),
+    CONSTRAINT facility_block_name_unique UNIQUE (block_id, facility_name),
+    CONSTRAINT facility_id_block_unique   UNIQUE (facility_id, block_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.complaint_category (
+    category_id   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    category_name VARCHAR(20) NOT NULL UNIQUE,
+    CONSTRAINT complaint_category_name_chk
+        CHECK (category_name IN ('Plumbing', 'Electrical', 'Structural', 'Hygiene'))
+);
