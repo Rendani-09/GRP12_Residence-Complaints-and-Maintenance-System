@@ -121,3 +121,17 @@ CREATE INDEX IF NOT EXISTS idx_facility_block_id ON public.facility (block_id);
 CREATE INDEX IF NOT EXISTS idx_room_block_id     ON public.room     (block_id);
 CREATE INDEX IF NOT EXISTS idx_users_block_id    ON public.users    (block_id);
 CREATE INDEX IF NOT EXISTS idx_users_role_id     ON public.users    (role_id);
+
+CREATE OR REPLACE VIEW public.view_students AS
+SELECT
+    u.user_id,
+    (u.first_name || ' ' || u.surname) AS full_name,
+    u.email,
+    u.user_number,
+    b.block_name,
+    r.room_number
+FROM       public.users u
+JOIN       public.block b  ON u.block_id = b.block_id
+JOIN       public.room  r  ON u.room_id  = r.room_id
+JOIN       public.role  ro ON u.role_id  = ro.role_id
+WHERE      ro.role_name = 'Student';
