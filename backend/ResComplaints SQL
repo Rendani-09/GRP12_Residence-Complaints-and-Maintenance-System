@@ -73,3 +73,31 @@ CREATE TABLE IF NOT EXISTS public.users (
     CONSTRAINT users_room_block_fkey   FOREIGN KEY (room_id, block_id)
                                            REFERENCES public.room (room_id, block_id)
 );
+CREATE TABLE IF NOT EXISTS public.complaint (
+    complaint_id   UUID         DEFAULT gen_random_uuid() PRIMARY KEY,
+    submitted_by   UUID         NOT NULL REFERENCES public.users (user_id),
+    category_id    INTEGER      NOT NULL REFERENCES public.complaint_category (category_id),
+    block_id       INTEGER      NOT NULL REFERENCES public.block (block_id),
+    room_id        INTEGER,
+    facility_id    INTEGER,
+    title          VARCHAR(100) NOT NULL,
+    description    TEXT         NOT NULL,
+    priority       VARCHAR(10)  NOT NULL DEFAULT 'Medium',
+    status         VARCHAR(10)  NOT NULL DEFAULT 'Pending',
+    date_submitted TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    admin_note     TEXT,
+    CONSTRAINT complaint_location_chk
+        CHECK (
+            (room_id IS NOT NULL AND facility_id IS NULL) OR
+            (room_id IS NULL     AND facility_id IS NOT NULL)
+        ),
+    CONSTRAINT complaint_priority_chk
+        CHECK (priority IN ('Low', 'Medium', 'High')),
+    CONSTRAINT complaint_status_chk
+        CHECK (status  IN ('Pending', 'Assigned', 'Completed')),
+    CONSTRAINT complaint_room_block_fkey
+        FOREIGN KEY (room_id, block_id)     REFERENCES public.room     (room_id, block_id),
+    CONSTRAINT complaint_facility_block_fkey
+        FOREIGN KEY (facility_id, block_id) REFERENCES public.facility (facility_id, block_id)
+);
+
