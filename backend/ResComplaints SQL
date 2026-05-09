@@ -227,3 +227,10 @@ VALUES
 (gen_random_uuid(), 'David Hygiene','Hygiene','0767234567','david.hygiene@contractors.co.za'),
 (gen_random_uuid(), 'Emma Hygiene','Hygiene','0768234567','emma.hygiene@contractors.co.za')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO public.users (first_name, surname, email, password_hash, user_number, block_id, room_id, role_id)
+VALUES
+('Admin','User1','12345601@mynwu.ac.za','pw_admin1','12345601',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin')),
+('Admin','User2','12345602@mynwu.ac.za','pw_admin2','12345602',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin')),
+('Admin','Manager','12345603@mynwu.ac.za','pw_mgr','12345603',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin'))
+ON CONFLICT DO NOTHING;
