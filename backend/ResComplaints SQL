@@ -298,3 +298,34 @@ VALUES
     (SELECT user_id FROM public.users WHERE email='12345602@mynwu.ac.za'), NOW() - INTERVAL '1 day', NULL)
 ON CONFLICT DO NOTHING;
 
+
+-- Queries--
+-- Contractors by specialization
+SELECT c.specialization,
+       COUNT(*) AS contractor_count
+FROM public.contractor c
+GROUP BY c.specialization
+ORDER BY contractor_count DESC;
+
+-- Recent pending complaints
+SELECT complaint_id, title, status, date_submitted
+FROM public.complaint
+WHERE status = 'Pending'
+ORDER BY date_submitted DESC
+LIMIT 5;
+
+-- Complaints mentioning leaks in Block 2
+SELECT c.complaint_id, c.title, c.description
+FROM public.complaint c
+JOIN public.block b ON c.block_id = b.block_id
+WHERE (c.description ILIKE '%leak%' OR c.description ILIKE '%leaking%')
+    AND b.block_num = 2;
+
+WITH params AS (SELECT 1 AS sample_block)
+SELECT u.user_number,
+       UPPER(u.surname) AS surname_upper,
+       CONCAT(u.first_name, ' ', u.surname) AS full_name
+FROM public.users u
+CROSS JOIN params
+WHERE u.block_id = (SELECT block_id FROM public.block WHERE block_num = params.sample_block);
+
