@@ -234,3 +234,18 @@ VALUES
 ('Admin','User2','12345602@mynwu.ac.za','pw_admin2','12345602',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin')),
 ('Admin','Manager','12345603@mynwu.ac.za','pw_mgr','12345603',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin'))
 ON CONFLICT DO NOTHING;
+INSERT INTO public.users (first_name, surname, email, password_hash, user_number, block_id, room_id, role_id)
+VALUES
+('Alice','Johnson','20240101@mynwu.ac.za','pw1','20240101',
+    (SELECT block_id FROM public.block WHERE block_num=1),
+    (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND room_number=1),
+    (SELECT role_id FROM public.role WHERE role_name='Student')),
+('Bob','Smith','20240102@mynwu.ac.za','pw2','20240102',
+    (SELECT block_id FROM public.block WHERE block_num=1),
+    (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND room_number=2),
+    (SELECT role_id FROM public.role WHERE role_name='Student')),
+('Charlie','Brown','20240103@mynwu.ac.za','pw3','20240103',
+    (SELECT block_id FROM public.block WHERE block_num=2),
+    (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=2) AND room_number=3),
+    (SELECT role_id FROM public.role WHERE role_name='Student'))
+ON CONFLICT DO NOTHING;
