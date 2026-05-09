@@ -1,0 +1,16 @@
+-- ResComplaints SQL --
+
+SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET idle_in_transaction_session_timeout = 0;
+SET transaction_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = ON;
+
+-- Schema --
+
+CREATE TABLE IF NOT EXISTS public.role (
+    role_id   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    role_name VARCHAR(20) NOT NULL UNIQUE,
+    CONSTRAINT role_name_chk CHECK (role_name IN ('Admin', 'Student'))
+);
