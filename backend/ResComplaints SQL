@@ -154,3 +154,21 @@ JOIN public.block b ON c.block_id = b.block_id
 LEFT JOIN public.room r ON c.room_id = r.room_id
 LEFT JOIN public.facility f ON c.facility_id = f.facility_id
 WHERE c.status = 'Pending';
+
+CREATE OR REPLACE FUNCTION public.enforce_user_role_rules()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+DECLARE v_role_name VARCHAR(20);
+BEGIN
+    SELECT role_name INTO v_role_name FROM public.role WHERE role_id = NEW.role_id;
+    IF v_role_name = 'Admin' THEN
+        IF NEW.block_id IS NOT NULL OR NEW.room_id IS NOT NULL THEN
+            RAISE EXCEPTION 'Admin users must not have block_id or room_id';
+        END IF;
+    ELSIF v_role_name = 'Student' THEN
+        IF NEW.block_id IS NULL OR NEW.room_id IS NULL THEN
+            RAISE EXCEPTION 'Student users must have both block_id and room_id';
+        END IF;
+    END IF;
+    RETURN NEW;
+END;
+$$;
