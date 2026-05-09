@@ -14,3 +14,21 @@ CREATE TABLE IF NOT EXISTS public.role (
     role_name VARCHAR(20) NOT NULL UNIQUE,
     CONSTRAINT role_name_chk CHECK (role_name IN ('Admin', 'Student'))
 );
+
+CREATE TABLE IF NOT EXISTS public.block (
+    block_id   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    block_num  INTEGER      NOT NULL UNIQUE,
+    block_name VARCHAR(20)  NOT NULL UNIQUE,
+    block_type VARCHAR(20)  NOT NULL,
+    CONSTRAINT block_block_num_check CHECK (block_num BETWEEN 1 AND 23),
+    CONSTRAINT block_type_chk        CHECK (block_type IN ('Residential', 'Facility'))
+);
+
+CREATE TABLE IF NOT EXISTS public.room (
+    room_id     INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    block_id    INTEGER NOT NULL REFERENCES public.block (block_id),
+    room_number INTEGER NOT NULL,
+    CONSTRAINT room_room_number_check  CHECK (room_number BETWEEN 1 AND 10),
+    CONSTRAINT room_block_room_unique  UNIQUE (block_id, room_number),
+    CONSTRAINT room_id_block_unique    UNIQUE (room_id, block_id)
+);
