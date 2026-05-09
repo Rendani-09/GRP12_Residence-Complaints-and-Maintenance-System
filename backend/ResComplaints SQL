@@ -215,3 +215,15 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.complaint_category (category_name) VALUES
 ('Plumbing'),('Electrical'),('Structural'),('Hygiene')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO public.contractor (contractor_id, contractor_name, specialization, phone, email)
+VALUES
+(gen_random_uuid(), 'John Plumber','Plumbing','0761234567','john.plumber@contractors.co.za'),
+(gen_random_uuid(), 'Jane Plumber','Plumbing','0762234567','jane.plumber@contractors.co.za'),
+(gen_random_uuid(), 'Mike Electrician','Electrical','0763234567','mike.elec@contractors.co.za'),
+(gen_random_uuid(), 'Sarah Electrician','Electrical','0764234567','sarah.elec@contractors.co.za'),
+(gen_random_uuid(), 'Tom Structural','Structural','0765234567','tom.struct@contractors.co.za'),
+(gen_random_uuid(), 'Lisa Structural','Structural','0766234567','lisa.struct@contractors.co.za'),
+(gen_random_uuid(), 'David Hygiene','Hygiene','0767234567','david.hygiene@contractors.co.za'),
+(gen_random_uuid(), 'Emma Hygiene','Hygiene','0768234567','emma.hygiene@contractors.co.za')
+ON CONFLICT DO NOTHING;
