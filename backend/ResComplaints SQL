@@ -172,3 +172,23 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+CREATE TRIGGER trg_sync_complaint_status
+AFTER INSERT OR UPDATE OF date_completed ON public.assignment
+FOR EACH ROW EXECUTE FUNCTION public.sync_complaint_status();
+
+-- Data --
+
+INSERT INTO public.role (role_name) VALUES ('Admin') ON CONFLICT DO NOTHING;
+INSERT INTO public.role (role_name) VALUES ('Student') ON CONFLICT DO NOTHING;
+
+INSERT INTO public.block (block_num, block_name, block_type)
+VALUES
+(1,'Block 1','Residential'),(2,'Block 2','Residential'),(3,'Block 3','Residential'),
+(4,'Block 4','Residential'),(5,'Block 5','Residential'),(6,'Block 6','Residential'),
+(7,'Block 7','Residential'),(8,'Block 8','Residential'),(9,'Block 9','Residential'),
+(10,'Block 10','Residential'),(11,'Block 11','Residential'),(12,'Block 12','Residential'),
+(13,'Block 13','Residential'),(14,'Block 14','Residential'),(15,'Block 15','Residential'),
+(16,'Block 16','Residential'),(17,'Block 17','Residential'),(18,'Block 18','Residential'),
+(19,'Block 19','Residential'),(20,'Block 20','Residential'),(21,'Block 21','Residential'),
+(22,'Block 22','Residential'),(23,'Block 23','Facility')
+ON CONFLICT DO NOTHING;
