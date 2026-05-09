@@ -286,3 +286,15 @@ VALUES
  (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=2) AND room_number=3),
  NULL,'Cracked wall','A crack has appeared near the window.','Medium','Pending')
 ON CONFLICT DO NOTHING;
+
+INSERT INTO public.assignment (assignment_id, complaint_id, contractor_id, assigned_by, date_assigned, date_completed)
+VALUES
+(gen_random_uuid(), (SELECT complaint_id FROM public.complaint WHERE title='Faulty ceiling light'),
+    (SELECT contractor_id FROM public.contractor WHERE email='mike.elec@contractors.co.za'),
+    (SELECT user_id FROM public.users WHERE email='12345601@mynwu.ac.za'), NOW() - INTERVAL '2 days', NOW() - INTERVAL '1 day'),
+
+(gen_random_uuid(), (SELECT complaint_id FROM public.complaint WHERE title='Blocked shower drain'),
+    (SELECT contractor_id FROM public.contractor WHERE specialization='Hygiene' LIMIT 1),
+    (SELECT user_id FROM public.users WHERE email='12345602@mynwu.ac.za'), NOW() - INTERVAL '1 day', NULL)
+ON CONFLICT DO NOTHING;
+
