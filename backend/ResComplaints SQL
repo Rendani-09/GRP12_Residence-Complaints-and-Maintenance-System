@@ -206,3 +206,12 @@ FROM public.block b
 CROSS JOIN (VALUES ('Kitchen'),('Toilet'),('Shower')) AS f(facility_type)
 WHERE b.block_num BETWEEN 1 AND 22
 ON CONFLICT DO NOTHING;
+
+INSERT INTO public.facility (block_id, facility_name, facility_type)
+SELECT block_id, ('Laundry Block ' || block_num) AS facility_name, 'Laundry'
+FROM public.block WHERE block_num = 23
+ON CONFLICT DO NOTHING;
+
+INSERT INTO public.complaint_category (category_name) VALUES
+('Plumbing'),('Electrical'),('Structural'),('Hygiene')
+ON CONFLICT DO NOTHING;
