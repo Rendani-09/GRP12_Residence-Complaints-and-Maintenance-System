@@ -329,3 +329,87 @@ FROM public.users u
 CROSS JOIN params
 WHERE u.block_id = (SELECT block_id FROM public.block WHERE block_num = params.sample_block);
 
+-- Complaint share by block
+WITH totals AS (
+    SELECT block_id, COUNT(*) AS cnt
+    FROM public.complaint
+    GROUP BY block_id
+), grand AS (
+    SELECT SUM(cnt)::numeric AS total FROM totals
+)
+SELECT b.block_num,
+       t.cnt,
+       ROUND((t.cnt::numeric / g.total) * 100, 2) AS pct_of_all_complaints
+FROM totals t
+JOIN public.block b ON t.block_id = b.block_id
+CROSS JOIN grand g
+ORDER BY t.cnt DESC;
+
+-- Complaints from the last 7 days
+SELECT complaint_id, title, date_submitted,
+       (CURRENT_DATE - date(date_submitted)) AS days_old
+FROM public.complaint
+WHERE date_submitted >= CURRENT_DATE - INTERVAL '7 days';
+
+-- Average complaints per block
+SELECT AVG(cnt) AS avg_complaints_per_block
+FROM (
+    SELECT block_id, COUNT(*) AS cnt
+    FROM public.complaint
+    GROUP BY block_id
+) sub;
+
+-- Blocks with more than one complaint
+SELECT b.block_num, COUNT(*) AS complaints
+FROM public.complaint c
+JOIN public.block b ON c.block_id = b.block_id
+GROUP BY b.block_num
+HAVING COUNT(*) > 1;
+
+-- Complaint details with assigned contractor
+SELECT c.complaint_id, c.title, u.email AS submitted_by, b.block_name,
+       r.room_number, f.facility_name, a.date_assigned, ctr.contractor_name
+FROM public.complaint c
+JOIN public.users u ON c.submitted_by = u.user_id
+JOIN public.block b ON c.block_id = b.block_id
+LEFT JOIN public.room r ON c.room_id = r.room_id
+LEFT JOIN public.facility f ON c.facility_id = f.facility_id
+LEFT JOIN public.assignment a ON a.complaint_id = c.complaint_id
+LEFT JOIN public.contractor ctr ON a.contractor_id = ctr.contractor_id;
+
+-- Users with above-average complaint counts
+SELECT u.user_id, u.email, COUNT(c.complaint_id) AS user_complaints
+FROM public.users u
+JOIN public.complaint c ON u.user_id = c.submitted_by
+GROUP BY u.user_id, u.email
+HAVING COUNT(c.complaint_id) > (
+    SELECT AVG(user_cnt) FROM (
+        SELECT COUNT(*) AS user_cnt FROM public.complaint GROUP BY submitted_by
+    ) x
+);
+
+-- Complaints by priority and date
+SELECT complaint_id, title, priority, date_submitted
+FROM public.complaint
+ORDER BY CASE priority WHEN 'High' THEN 1 WHEN 'Medium' THEN 2 ELSE 3 END, date_submitted DESC;
+
+-- Contractors with plumb in the name
+SELECT contractor_id, contractor_name, specialization
+FROM public.contractor
+WHERE LOWER(contractor_name) LIKE '%plumb%';
+
+-- Complaint summary
+SELECT complaint_id, title, status FROM public.complaint LIMIT 10;
+
+-- Contractors who handled complaints in the last 30 days
+SELECT DISTINCT ctr.contractor_id, ctr.contractor_name
+FROM public.contractor ctr
+JOIN public.assignment a ON a.contractor_id = ctr.contractor_id
+JOIN public.complaint c ON a.complaint_id = c.complaint_id
+WHERE a.date_assigned >= CURRENT_DATE - INTERVAL '30 days';
+
+-- Average resolution time in days
+SELECT ROUND(AVG(EXTRACT(EPOCH FROM (a.date_completed - a.date_assigned)) / 86400.0)::numeric, 2) AS avg_resolution_days
+FROM public.assignment a
+WHERE a.date_completed IS NOT NULL;
+
