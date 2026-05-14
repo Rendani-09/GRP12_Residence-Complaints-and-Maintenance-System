@@ -137,7 +137,6 @@ const AdminDashboard = () => {
                 {filtered.map((c, i) => {
                   const status = getStatus(c.id, c.status);
                   const assignedName = getAssignedName(c.id, c.assignedToName);
-                  const isAssigned = status === 'Assigned' || status === 'Completed';
                   return (
                     <motion.tr
                       key={c.id}
