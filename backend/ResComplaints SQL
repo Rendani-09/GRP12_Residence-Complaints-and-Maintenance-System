@@ -3,9 +3,10 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = ON;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Schema --
 
@@ -32,6 +33,7 @@ CREATE TABLE IF NOT EXISTS public.room (
     CONSTRAINT room_block_room_unique  UNIQUE (block_id, room_number),
     CONSTRAINT room_id_block_unique    UNIQUE (room_id, block_id)
 );
+
 CREATE TABLE IF NOT EXISTS public.facility (
     facility_id   INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     block_id      INTEGER     NOT NULL REFERENCES public.block (block_id),
@@ -48,6 +50,7 @@ CREATE TABLE IF NOT EXISTS public.complaint_category (
     CONSTRAINT complaint_category_name_chk
         CHECK (category_name IN ('Plumbing', 'Electrical', 'Structural', 'Hygiene'))
 );
+
 CREATE TABLE IF NOT EXISTS public.contractor (
     contractor_id   UUID        DEFAULT gen_random_uuid() PRIMARY KEY,
     contractor_name VARCHAR(100) NOT NULL,
@@ -73,6 +76,7 @@ CREATE TABLE IF NOT EXISTS public.users (
     CONSTRAINT users_room_block_fkey   FOREIGN KEY (room_id, block_id)
                                            REFERENCES public.room (room_id, block_id)
 );
+
 CREATE TABLE IF NOT EXISTS public.complaint (
     complaint_id   UUID         DEFAULT gen_random_uuid() PRIMARY KEY,
     submitted_by   UUID         NOT NULL REFERENCES public.users (user_id),
@@ -100,6 +104,7 @@ CREATE TABLE IF NOT EXISTS public.complaint (
     CONSTRAINT complaint_facility_block_fkey
         FOREIGN KEY (facility_id, block_id) REFERENCES public.facility (facility_id, block_id)
 );
+
 CREATE TABLE IF NOT EXISTS public.assignment (
     assignment_id UUID      DEFAULT gen_random_uuid() PRIMARY KEY,
     complaint_id  UUID      NOT NULL UNIQUE REFERENCES public.complaint   (complaint_id),
@@ -122,6 +127,7 @@ CREATE INDEX IF NOT EXISTS idx_room_block_id     ON public.room     (block_id);
 CREATE INDEX IF NOT EXISTS idx_users_block_id    ON public.users    (block_id);
 CREATE INDEX IF NOT EXISTS idx_users_role_id     ON public.users    (role_id);
 
+-- Views and Triggers --
 CREATE OR REPLACE VIEW public.view_students AS
 SELECT
     u.user_id,
@@ -172,6 +178,23 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
+CREATE TRIGGER trg_enforce_user_role_rules
+BEFORE INSERT OR UPDATE ON public.users
+FOR EACH ROW EXECUTE FUNCTION public.enforce_user_role_rules();
+
+CREATE OR REPLACE FUNCTION public.sync_complaint_status()
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+    IF NEW.date_completed IS NOT NULL THEN
+        UPDATE public.complaint SET status = 'Completed' WHERE complaint_id = NEW.complaint_id;
+    ELSE
+        UPDATE public.complaint SET status = 'Assigned' WHERE complaint_id = NEW.complaint_id;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
 CREATE TRIGGER trg_sync_complaint_status
 AFTER INSERT OR UPDATE OF date_completed ON public.assignment
 FOR EACH ROW EXECUTE FUNCTION public.sync_complaint_status();
@@ -230,9 +253,9 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO public.users (first_name, surname, email, password_hash, user_number, block_id, room_id, role_id)
 VALUES
-('Admin','User1','12345601@mynwu.ac.za','pw_admin1','12345601',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin')),
-('Admin','User2','12345602@mynwu.ac.za','pw_admin2','12345602',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin')),
-('Admin','Manager','12345603@mynwu.ac.za','pw_mgr','12345603',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin'))
+('Admin','User1','12345601@mynwu.ac.za','$2b$10$TQh/Fxd5CcX5AoF6nEx6SuZ8lYHOE9SSFGLWSfXZjOHDmqr2/QnxG','12345601',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin')),
+('Admin','User2','12345602@mynwu.ac.za','$2b$10$rVycBS/GPqomCKxLtzqCUOGFoB4p.FIvUWp6Ot4VxGUwxlYl2XhGa','12345602',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin')),
+('Admin','Manager','12345603@mynwu.ac.za','$2b$10$Fb1a1RHW8o1l.lJIV2nrJeLDxd/UzfXYsKx2mLtK19kIHuFGMGkyi','12345603',NULL,NULL,(SELECT role_id FROM public.role WHERE role_name='Admin'))
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.users (first_name, surname, email, password_hash, user_number, block_id, room_id, role_id)
@@ -265,20 +288,6 @@ VALUES
  NULL,
  (SELECT facility_id FROM public.facility WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND facility_type='Shower'),
  'Blocked shower drain','Shower drain is blocked and water collects.', 'Medium','Pending'),
-INSERT INTO public.complaint (submitted_by, category_id, block_id, room_id, facility_id, title, description, priority, status)
-VALUES
-((SELECT user_id FROM public.users WHERE email='20240101@mynwu.ac.za'),
- (SELECT category_id FROM public.complaint_category WHERE category_name='Electrical'),
- (SELECT block_id FROM public.block WHERE block_num=1),
- (SELECT room_id FROM public.room WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND room_number=1),
- NULL,'Faulty ceiling light','The ceiling light in room 1 is flickering.', 'High','Pending'),
-
-((SELECT user_id FROM public.users WHERE email='20240102@mynwu.ac.za'),
- (SELECT category_id FROM public.complaint_category WHERE category_name='Hygiene'),
- (SELECT block_id FROM public.block WHERE block_num=1),
- NULL,
- (SELECT facility_id FROM public.facility WHERE block_id=(SELECT block_id FROM public.block WHERE block_num=1) AND facility_type='Shower'),
- 'Blocked shower drain','Shower drain is blocked and water collects.', 'Medium','Pending'),
 
 ((SELECT user_id FROM public.users WHERE email='20240103@mynwu.ac.za'),
  (SELECT category_id FROM public.complaint_category WHERE category_name='Structural'),
@@ -297,7 +306,6 @@ VALUES
     (SELECT contractor_id FROM public.contractor WHERE specialization='Hygiene' LIMIT 1),
     (SELECT user_id FROM public.users WHERE email='12345602@mynwu.ac.za'), NOW() - INTERVAL '1 day', NULL)
 ON CONFLICT DO NOTHING;
-
 
 -- Queries--
 -- Contractors by specialization
@@ -412,4 +420,3 @@ WHERE a.date_assigned >= CURRENT_DATE - INTERVAL '30 days';
 SELECT ROUND(AVG(EXTRACT(EPOCH FROM (a.date_completed - a.date_assigned)) / 86400.0)::numeric, 2) AS avg_resolution_days
 FROM public.assignment a
 WHERE a.date_completed IS NOT NULL;
-
