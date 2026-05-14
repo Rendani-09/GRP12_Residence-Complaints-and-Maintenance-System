@@ -30,3 +30,36 @@ Students can report maintenance issues directly through the system, while the re
 - **Contractor:** Stored in the database (no system login access)  
 
 ---
+
+## Backend Environment Variables
+The backend validates required variables at startup.
+
+Required:
+- `DATABASE_URL`
+- `JWT_SECRET`
+
+Optional:
+- `PORT` (default: `4000`)
+- `NODE_ENV` (default: `development`)
+- `JWT_EXPIRES_IN` (default: `12h`)
+- `CORS_ORIGIN` (default: `http://localhost:8080`)
+
+Use `backend/.env.example` as a template for local development.
+
+---
+
+## Render Deployment Notes
+If Render fails with `Missing required environment variable: JWT_SECRET`, add the following in your Render service settings under Environment:
+
+- `DATABASE_URL` = your Postgres connection string
+- `JWT_SECRET` = a long random secret value
+
+Then redeploy the latest commit.
+
+If your service start command is still set manually, make sure it is:
+
+- `npm start`
+
+The backend should not be started with `node src/server.js` unless using the compatibility file included in this repository.
+
+---
