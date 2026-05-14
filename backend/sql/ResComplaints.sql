@@ -3,9 +3,10 @@
 SET statement_timeout = 0;
 SET lock_timeout = 0;
 SET idle_in_transaction_session_timeout = 0;
-SET transaction_timeout = 0;
 SET client_encoding = 'UTF8';
 SET standard_conforming_strings = ON;
+
+CREATE EXTENSION IF NOT EXISTS pgcrypto;
 
 -- Schema --
 
@@ -126,6 +127,7 @@ CREATE INDEX IF NOT EXISTS idx_room_block_id     ON public.room     (block_id);
 CREATE INDEX IF NOT EXISTS idx_users_block_id    ON public.users    (block_id);
 CREATE INDEX IF NOT EXISTS idx_users_role_id     ON public.users    (role_id);
 
+-- Views and Triggers --
 CREATE OR REPLACE VIEW public.view_students AS
 SELECT
     u.user_id,
